@@ -61,8 +61,30 @@ head(catch_wide)
 
 ```
 
+## Cleanup our data
 
+* rename catch to catch_thousands
+* change catch solumn to numeric
+* create a new catch column in units num. of fish 
+ 
+```{r}
+catch_clean <- catch_long %>% 
+  rename(catch_thousands = catch) %>% 
+  mutate(catch_thousands = ifelse(catch_thousands %in% c("I", "M", "Z"), 1, catch_thousands)) %>% 
+  mutate(catch_thousands = as.numeric(catch_thousands)) %>% 
+  mutate(catch = catch_thousands * 1000) %>% 
+  select(-catch_thousands)
 
+head(catch_clean)
+```
+
+Look at where as.numeric failed. This is a test for incorrect data entry / incorrect dimension/unit/... 
+
+```{r}
+test <- as.numeric(catch_long$catch)
+i <- which(is.na(test) == TRUE)
+catch_long[i,]
+```
 
 
 
