@@ -38,6 +38,31 @@ catch_original <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/obje
 head(catch_original)
 ```
 
+Remove the `all` and `notesRegcode` columns using `select`
+
+Ctrl + Shft + m : pipe operator shortcut %>%
+
+```{r}
+# select 'wide' data
+catch_long <- catch_original %>% 
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %>%   # or select(-All, -notesRegCode) select columns we want
+  gather(key = "species", value = "catch", # move from wide to long
+         -Region, -Year)  # have two primary / non-specie columns present in new table
+
+head(catch_long)
+```
+
+
+```{r}
+catch_wide <- catch_long %>% 
+  spread(key = Region, value = catch) # spread is opposite to gather
+
+head(catch_wide)
+
+```
+
+
+
 
 
 
