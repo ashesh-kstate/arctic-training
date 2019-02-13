@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 - convert to C
 
 ```{r}
+source("convert.R")
 air_temps <- c(212, 100, 32, 44, 56) 
 
 air_temp1 <- (air_temps[1] - 32) * 5/9
@@ -54,7 +55,7 @@ air_temp_F2 == air_temp_F
 ```
 
 
-# Show how to document functions (using rxygen)
+# Show how to document functions (using roxygen)
 
 ```{r}
 #' Converts numeric temperature data from degrees Fahrenheit to degrees Celsius
