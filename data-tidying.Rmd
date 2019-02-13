@@ -114,11 +114,62 @@ head(year_mean)
 ```
 
 
-
-
-
-
 # Join the Region Definitions
 
+
+
+```{r}
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1",
+                            method = "libcurl"),
+                        stringsAsFactors = FALSE) %>% 
+    select(code, mgmtArea) %>% 
+    rename(Region = code) # rename to match names of join fields
+    
+
+head(region_defs)
+
+```
+
+```{r}
+catch_joined <- left_join(catch_clean, region_defs, by = "Region" ) # c("Region" = "code"))
+
+# catch_joined <- inner_join(catch_clean, region_defs, by = "Region" ) # c("Region" = "code"))
+
+
+# catch_joined <- catch_clean %>% 
+#  left_join(region_defs)
+
+head(catch_joined)
+```
+
+
+
 # Miscellanious Functions
+
+```{r}
+dates_df <- data.frame(date = c("5/24/1930",
+                                "5/25/1930",
+                                "5/26/1930",
+                                "5/27/1930",
+                                "5/28/1930"),
+                       stringsAsFactors = FALSE)
+
+head( dates_df)
+```
+
+```{r}
+dates_split <- dates_df %>% 
+  separate(date, into = c("month", "day", "year"), sep = "/", remove = F)
+
+head(dates_split)
+```
+
+```{r}
+dates_unite <- dates_split %>% 
+  unite(col = date_iso, year, month, day, sep = "-") # recommend 'lubridate' package for date manipulation
+
+# recommend package 'stringer' for string manipulation 
+
+head(dates_unite)
+```
 
