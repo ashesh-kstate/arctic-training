@@ -38,6 +38,7 @@ library(tidyr)
 catch_original <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1", method = "libcurl"),
                            stringsAsFactors = FALSE )
 head(catch_original)
+
 ```
 
 Remove the `all` and `notesRegcode` columns using `select`
@@ -168,8 +169,24 @@ head(dates_split)
 dates_unite <- dates_split %>% 
   unite(col = date_iso, year, month, day, sep = "-") # recommend 'lubridate' package for date manipulation
 
-# recommend package 'stringer' for string manipulation 
-
 head(dates_unite)
 ```
+
+```{r}
+# recommend package 'stringr' for string manipulation 
+library(stringr)
+
+month <- c("5", "01", "003")
+
+str_pad(month, 2, side = "left", pad = "0")
+
+```
+
+```{r}
+write.csv(catch_clean, "catch_clean.csv", row.names = F, quote = F)
+
+```
+
+
+
 

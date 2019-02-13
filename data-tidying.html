@@ -384,8 +384,6 @@ head(dates_split)</code></pre>
 <pre class="r"><code>dates_unite &lt;- dates_split %&gt;% 
   unite(col = date_iso, year, month, day, sep = &quot;-&quot;) # recommend 'lubridate' package for date manipulation
 
-# recommend package 'stringer' for string manipulation 
-
 head(dates_unite)</code></pre>
 <pre><code>##        date  date_iso
 ## 1 5/24/1930 1930-5-24
@@ -393,6 +391,14 @@ head(dates_unite)</code></pre>
 ## 3 5/26/1930 1930-5-26
 ## 4 5/27/1930 1930-5-27
 ## 5 5/28/1930 1930-5-28</code></pre>
+<pre class="r"><code># recommend package 'stringr' for string manipulation 
+library(stringr)
+
+month &lt;- c(&quot;5&quot;, &quot;01&quot;, &quot;003&quot;)
+
+str_pad(month, 2, side = &quot;left&quot;, pad = &quot;0&quot;)</code></pre>
+<pre><code>## [1] &quot;05&quot;  &quot;01&quot;  &quot;003&quot;</code></pre>
+<pre class="r"><code>write.csv(catch_clean, &quot;catch_clean.csv&quot;, row.names = F, quote = F)</code></pre>
 </div>
 
 
