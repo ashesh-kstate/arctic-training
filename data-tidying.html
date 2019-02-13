@@ -191,6 +191,8 @@ $(document).ready(function () {
 <pre class="r"><code>library(dplyr)
 library(tidyr)
 
+# !these libraries similar to pandas in Python!
+
 # #Show in New WindowClear OutputExpand/Collapse Output
 # 
 # Attaching package: �dplyr�
@@ -221,6 +223,103 @@ head(catch_original)</code></pre>
 ## 4    SSE 1889       0     182   11   92    0 285             
 ## 5    SSE 1890       0     251   42    0    0 292             
 ## 6    SSE 1891       0     274   24    0    0 298</code></pre>
+<p>Remove the <code>all</code> and <code>notesRegcode</code> columns using <code>select</code></p>
+<p>Ctrl + Shft + m : pipe operator shortcut %&gt;%</p>
+<pre class="r"><code># select 'wide' data
+catch_long &lt;- catch_original %&gt;% 
+  select(Region, Year, Chinook, Sockeye, Coho, Pink, Chum) %&gt;%   # or select(-All, -notesRegCode) select columns we want
+  gather(key = &quot;species&quot;, value = &quot;catch&quot;, # move from wide to long
+         -Region, -Year)  # have two primary / non-specie columns present in new table
+
+head(catch_long)</code></pre>
+<pre><code>##   Region Year species catch
+## 1    SSE 1886 Chinook     0
+## 2    SSE 1887 Chinook     0
+## 3    SSE 1888 Chinook     0
+## 4    SSE 1889 Chinook     0
+## 5    SSE 1890 Chinook     0
+## 6    SSE 1891 Chinook     0</code></pre>
+<pre class="r"><code>catch_wide &lt;- catch_long %&gt;% 
+  spread(key = Region, value = catch) # spread is opposite to gather
+
+head(catch_wide)</code></pre>
+<pre><code>##   Year species  ALU  BER  BRB  CHG  CKI  COP GSE  KOD  KSK  KTZ  NOP  NRS
+## 1 1878 Chinook &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 2 1878    Chum &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 3 1878    Coho &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 4 1878    Pink &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 5 1878 Sockeye &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 6 1879 Chinook &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;   0 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+##    NSE  PWS  SOP  SSE  YAK  YUK
+## 1 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 2 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 3 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 4 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 5 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;
+## 6 &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt; &lt;NA&gt;</code></pre>
+<div id="cleanup-our-data" class="section level2">
+<h2>Cleanup our data</h2>
+<ul>
+<li>rename catch to catch_thousands</li>
+<li>change catch solumn to numeric</li>
+<li>create a new catch column in units num. of fish</li>
+</ul>
+<pre class="r"><code>catch_clean &lt;- catch_long %&gt;% 
+  rename(catch_thousands = catch) %&gt;% 
+  # mutate(catch_thousands = ifelse(catch_thousands %in% c(&quot;I&quot;, &quot;M&quot;, &quot;Z&quot;), 1, catch_thousands)) %&gt;%  # this is for more than 1 error
+  mutate(catch_thousands = ifelse(catch_thousands == &quot;I&quot;, 1, catch_thousands)) %&gt;% 
+  mutate(catch_thousands = as.numeric(catch_thousands)) %&gt;% 
+  mutate(catch = catch_thousands * 1000) %&gt;% 
+  select(-catch_thousands)
+
+head(catch_clean)</code></pre>
+<pre><code>##   Region Year species catch
+## 1    SSE 1886 Chinook     0
+## 2    SSE 1887 Chinook     0
+## 3    SSE 1888 Chinook     0
+## 4    SSE 1889 Chinook     0
+## 5    SSE 1890 Chinook     0
+## 6    SSE 1891 Chinook     0</code></pre>
+<p>Look at where as.numeric failed. This is a test for incorrect data entry / incorrect dimension/unit/… This block/chunk can be removed/muted after the fix of missing/invalid data implemented</p>
+<pre class="r"><code>test &lt;- as.numeric(catch_long$catch)</code></pre>
+<pre><code>## Warning: NAs introduced by coercion</code></pre>
+<pre class="r"><code>i &lt;- which(is.na(test) == TRUE)
+catch_long[i,]</code></pre>
+<pre><code>##     Region Year species catch
+## 401    GSE 1955 Chinook     I</code></pre>
+</div>
+<div id="split---apply---combine" class="section level2">
+<h2>Split - Apply - Combine</h2>
+<ul>
+<li>calculate mean catch by species</li>
+</ul>
+<pre class="r"><code># species_mean &lt;- catch_clean %&gt;% 
+#   group_by(species, Region) %&gt;% 
+#   summarise(catch_mean = mean(catch),
+#     num_obs = length( whcih(is.na(catch) == F )))#n()
+# 
+# head(species_mean)
+  
+
+year_mean &lt;- catch_clean %&gt;% 
+  group_by(Year, species) %&gt;% #species, Region) %&gt;% 
+  summarise(catch_mean = mean(catch)) %&gt;% 
+  arrange(-Year, desc(species)) %&gt;% # catch_mean) %&gt;% 
+  filter(Year &gt;= 1990 &amp; Year &lt;= 1995) 
+  
+
+head(year_mean)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+## # Groups:   Year [2]
+##    Year species catch_mean
+##   &lt;int&gt; &lt;chr&gt;        &lt;dbl&gt;
+## 1  1995 Sockeye   3737235.
+## 2  1995 Pink      7548471.
+## 3  1995 Coho       381118.
+## 4  1995 Chum      1076353.
+## 5  1995 Chinook     36824.
+## 6  1994 Sockeye   3083353.</code></pre>
+</div>
 </div>
 <div id="join-the-region-definitions" class="section level1">
 <h1>Join the Region Definitions</h1>

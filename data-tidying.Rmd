@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(tidyr)
 
+# !these libraries similar to pandas in Python!
+
 # #Show in New WindowClear OutputExpand/Collapse Output
 # 
 # Attaching package: �dplyr�
@@ -70,7 +72,8 @@ head(catch_wide)
 ```{r}
 catch_clean <- catch_long %>% 
   rename(catch_thousands = catch) %>% 
-  mutate(catch_thousands = ifelse(catch_thousands %in% c("I", "M", "Z"), 1, catch_thousands)) %>% 
+  # mutate(catch_thousands = ifelse(catch_thousands %in% c("I", "M", "Z"), 1, catch_thousands)) %>%  # this is for more than 1 error
+  mutate(catch_thousands = ifelse(catch_thousands == "I", 1, catch_thousands)) %>% 
   mutate(catch_thousands = as.numeric(catch_thousands)) %>% 
   mutate(catch = catch_thousands * 1000) %>% 
   select(-catch_thousands)
@@ -79,12 +82,38 @@ head(catch_clean)
 ```
 
 Look at where as.numeric failed. This is a test for incorrect data entry / incorrect dimension/unit/... 
+This block/chunk can be removed/muted after the fix of missing/invalid data implemented 
 
 ```{r}
 test <- as.numeric(catch_long$catch)
 i <- which(is.na(test) == TRUE)
 catch_long[i,]
 ```
+
+## Split - Apply - Combine
+
+* calculate mean catch by species
+
+```{r}
+# species_mean <- catch_clean %>% 
+#   group_by(species, Region) %>% 
+#   summarise(catch_mean = mean(catch),
+#     num_obs = length( whcih(is.na(catch) == F )))#n()
+# 
+# head(species_mean)
+  
+
+year_mean <- catch_clean %>% 
+  group_by(Year, species) %>% #species, Region) %>% 
+  summarise(catch_mean = mean(catch)) %>% 
+  arrange(-Year, desc(species)) %>% # catch_mean) %>% 
+  filter(Year >= 1990 & Year <= 1995) 
+  
+
+head(year_mean)
+```
+
+
 
 
 
