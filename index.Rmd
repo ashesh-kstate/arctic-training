@@ -1,28 +1,130 @@
 ---
-title: "Untitled"
+title: "Data Visualization"
 output: html_document
 ---
+
+```{r, warning = FALSE, message = FALSE}
+library(dplyr)
+library(tidyr)
+
+library(leaflet)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(DT)
+
+
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# Reformat tthe data for plotting
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Alaska Department of Fish and Game, Division of Commercial Fisheries. 2017. Daily salmon escapement counts from the OceanAK database, Alaska, 1921-2017. Knowledge Network for Biocomplexity. doi:10.5063/F1S46Q6M.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
+esc <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e", 
+                method = "libcurl"),
+                stringsAsFactors = F)
 
-```{r cars}
-summary(cars)
+head(esc)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+* calculate annual escapment by species and region
+    + `separate`
+    + `group_by`
+    + `summarize` using `sum` function
+    
+* filter for just pacific salmon (sockeye, chinook, coho, pink, chum)
+    + `filter`
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+annual_esc
+
+```{r}
+esc_1 <- esc %>% 
+  separate(sampleDate, into = c("year", "month", "day"), sep = "-", remove = F)
+
+head(esc_1)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+esc_2  <- esc_1 %>% 
+    group_by(year, Species, SASAP.Region) 
+
+
+head(esc_2)
+
+```
+
+
+```{r}
+esc_3  <- esc_2 %>% 
+    summarize(count_sum = sum(DailyCount)) 
+
+
+head(esc_3)
+
+```
+
+```{r}
+esc_4 <- esc_3 %>% 
+#    filter(Species == "Sockeye" | Species == "Chinook" | Species == "Coho" | Species == "Pink" | Species == "Chum" )
+    filter(Species %in% c("Sockeye", "Chinook", "Coho", "Pink", "Chum" ) )
+
+head (esc_4)
+```
+
+
+
+
+# Generate some static plots
+
+
+```{r}
+my_ggplot_theme <-   theme_bw() + 
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+```
+
+
+```{r}
+esc_annual <- esc_4
+
+ggplot( esc_annual, mapping = aes(x = Species, y = count_sum, fill = "blue")) +
+  geom_col()
+    
+ggplot( esc_annual, mapping = aes(x = Species, y = count_sum)) +
+  geom_col(fill = "blue")
+
+ggplot( esc_annual, mapping = aes(x = Species, y = count_sum, fill = SASAP.Region)) +
+  geom_col()
+
+ggplot( esc_annual, mapping = aes(x = Species, y = count_sum, fill = SASAP.Region)) +
+  scale_fill_brewer(palette = "Dark2") +
+  geom_col()
+
+```
+
+```{r}
+
+esc_annual <- esc_annual %>% 
+  ungroup() %>% 
+  mutate(year = as.numeric(year))
+
+ggplot(filter(esc_annual, SASAP.Region == "Kodiak"), aes(x = year, y = count_sum, color = Species)) +
+    geom_line() +
+    geom_point() +
+  ylab("Escapement (num of fish)") + 
+  xlab("Year") +
+  ggtitle("Kodiak Salmon Escapement") +
+  my_ggplot_theme
+#  theme_bw() + 
+#  theme(legend.position = "bottom", legend.title = element_blank())
+```
+
