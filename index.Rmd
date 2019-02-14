@@ -3,6 +3,7 @@ title: "Data Visualization"
 output: html_document
 editor_options: 
   chunk_output_type: inline
+# blogdown, bookdown packages to build the website/online document book  
 ---
 
 ```{r, warning = FALSE, message = FALSE}
@@ -14,8 +15,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(DT)
-
-
+library(scales)
 ```
 
 ```{r setup, include=FALSE}
@@ -130,6 +130,7 @@ ggplot(filter(esc_annual, SASAP.Region == "Kodiak"), aes(x = year, y = count_sum
   xlab("Year") +
   ggtitle("Kodiak Salmon Escapement") +
   my_ggplot_theme
+
 #  theme_bw() + 
 #  theme(legend.position = "bottom", legend.title = element_blank())
 ```
@@ -185,4 +186,3 @@ leaflet(locations) %>%
   
 ```
 
-leaflet
