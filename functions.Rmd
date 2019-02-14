@@ -51,6 +51,7 @@ air_temp_F2
 air_temp_F
 
 air_temp_F2 == air_temp_F
+plot(air_temp_F2)
 
 ```
 
