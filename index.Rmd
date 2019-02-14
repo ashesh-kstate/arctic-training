@@ -1,6 +1,8 @@
 ---
 title: "Data Visualization"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r, warning = FALSE, message = FALSE}
@@ -88,7 +90,10 @@ head (esc_4)
 
 ```{r}
 my_ggplot_theme <-   theme_bw() + 
-  theme(legend.position = "bottom", legend.title = element_blank())
+  theme(legend.position = "bottom", 
+        legend.title = element_blank(),
+        plot.title = element_text(hjust = 0.5)) 
+  
 
 ```
 
@@ -120,6 +125,7 @@ esc_annual <- esc_annual %>%
 ggplot(filter(esc_annual, SASAP.Region == "Kodiak"), aes(x = year, y = count_sum, color = Species)) +
     geom_line() +
     geom_point() +
+  scale_y_continuous(labels = comma) +
   ylab("Escapement (num of fish)") + 
   xlab("Year") +
   ggtitle("Kodiak Salmon Escapement") +
@@ -127,4 +133,29 @@ ggplot(filter(esc_annual, SASAP.Region == "Kodiak"), aes(x = year, y = count_sum
 #  theme_bw() + 
 #  theme(legend.position = "bottom", legend.title = element_blank())
 ```
+
+
+
+```{r, fig.width = 7, fig.height = 8}
+p <- ggplot(esc_annual, aes (x = year, y = count_sum, color = Species)) +
+  geom_line() +
+  geom_point() +
+  scale_y_continuous(label = comma) +
+  facet_wrap(~SASAP.Region, scales = "free_y", ncol = 2) +
+  my_ggplot_theme
+
+p
+
+ggsave("figures/regional_escapement.png", 
+       plot = p,
+       width = 7,
+       height = 8,
+       units = "in"
+       )
+
+
+
+```
+
+
 
