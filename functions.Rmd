@@ -71,3 +71,9 @@ fahr_to_celsius <- function(fahr = 32) {
 
 ```
 
+```{r}
+library(mytools)
+environment_info("It works")
+```
+
+

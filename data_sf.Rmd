@@ -1,0 +1,154 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+packages:
+
+dyplr
+tidyr
+leaflet
+sf
+
+------
+
+install.packages("sf")
+
+```{r}
+library(sf)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(leaflet)
+library(scales)
+```
+
+
+
+# read objects in shapefile
+```{r}
+ak_shp_sf <- read_sf("data/shapefiles/ak_regions_simp.shp")
+
+head(ak_shp_sf)
+
+plot(ak_shp_sf)
+
+
+
+# re-project:
+ak_shp_sf <- ak_shp_sf %>%
+	st_transform(crs = 3338)
+	
+plot(ak_shp_sf)
+	
+
+
+	
+
+# Spatial Joins
+
+pop <- read.csv("data/shapefiles/alaska_population.csv")
+
+
+
+pop_sf <- st_as_sf(pop, 
+		coords = c("lng", "lat"),
+		crs = 4326,
+		remove = F) %>%
+	st_transform(crs = 3338)
+	
+pop_joined_sf <- st_join(pop_sf, 
+		ak_shp_sf, 
+		join = st_within)
+		
+plot(pop_joined_sf["region"])
+
+# Group by and summarize
+
+pop_region <- pop_joined_sf %>%
+	as.data.frame() %>%
+	group_by(region) %>%
+	summarize(total_pop = sum(population))
+	
+head(pop_region)
+
+ak_pop_sf <- left_join(ak_shp_sf, pop_region)
+
+plot( ak_pop_sf)
+
+ak_mgmt <- ak_pop_sf %>%
+	group_by(mgmt_area) %>%
+	summarize(total_pop = sum(total_pop))
+	
+plot(ak_mgmt["total_pop"])
+
+
+
+# Write shapefiles
+
+write_sf(ak_shp_sf, "data/shapefiles/ak_regions_population.shp")
+
+```
+
+
+# Static plots
+
+```{r}
+ggplot(ak_pop_sf) +
+#  geom_sf(aes(fill = total_pop)) +
+  geom_sf(data = ak_pop_sf, aes(fill = total_pop)) +
+  geom_sf(data = pop_sf, size = 0.5) + 
+  theme_bw() +
+  labs(fill = "Total Population") +
+  scale_fill_continuous(low = "khaki", high = "firebrick", labels = comma) 
+  
+```
+
+	## Interactive maps
+
+Specific note: need to unproject your own data and tell leaflet to project it!
+
+```{r}
+epsg3338 <- leaflet::leafletCRS(
+  crsClass = "L.Proj.CRS",
+  code = "EPSG:3338",
+  proj4def =  "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+  resolutions = 2^(16:7))
+```
+	
+	
+```{r}
+ak_crs <- st_transform(ak_pop_sf, crs = 4326)
+pop_crs <- st_transform(pop_sf, crs = 4326)
+```
+	
+		
+```{r}
+pal <- colorNumeric(palette = "Reds", domain = ak_crs$total_pop)
+
+m <- leaflet(options = leafletOptions(crs = epsg3338)) %>% 
+  addPolygons(data = ak_crs,
+              #              fillColor = "gray",
+              fillColor = ~pal(total_pop),
+              weight = 1,
+              color = "black",
+              label = ~region,
+              fillOpacity = 1) %>% 
+  addCircleMarkers(data = pop_crs,
+                   lat = ~lat,
+                   lng = ~lng,
+                   radius = 2,
+                   fillColor = "gray",
+                   fillOpacity = 1,
+                   weight = 0.25,
+                   color = "black",
+                   label = ~city)
+
+m
+
+```
+		

@@ -14,3 +14,10 @@ celsius_to_fahr2 <- function(cels = 0){
   fahr = cels * 9 / 5 + 32
   return(fahr)
 }
+
+
+temp_F1 = 10
+
+temp_C1 = fahr_to_celsius2(temp_F1)
+
+temp_C1
